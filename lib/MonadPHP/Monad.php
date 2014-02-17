@@ -17,15 +17,21 @@ abstract class Monad {
         return new static($value);
     }
 
-    public function bind($function, array $args = array()) {
-        return $this::unit($this->runCallback($function, $this->value, $args));
-    }
-
     public function extract() {
         if ($this->value instanceof self) {
             return $this->value->extract();
         }
         return $this->value;
+    }
+
+    public function __call($name, $arguments)
+    {
+        if ($name == 'bind') {
+            $function = array_shift($arguments);
+            $args = empty($arguments) ? array() : array_shift($arguments);
+            return $this::unit($this->runCallback($function, $this->value, $args));
+        }
+        throw new \BadMethodCallException('Call to undefined method '.$name);
     }
 
     protected function runCallback($function, $value, array $args = array()) {
